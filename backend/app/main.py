@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
@@ -68,7 +69,7 @@ app.include_router(sms.router)
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok", "service": "Ludy Hair Studio API"}
+    return {"status": "ok", "service": "Ludy Hair Studio API", "port": os.getenv("PORT", "unknown")}
 
 
 @app.get("/")
