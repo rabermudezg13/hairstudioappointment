@@ -25,14 +25,24 @@ def seed_services(db):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Create all tables
-    Base.metadata.create_all(bind=engine)
-    # Seed default services
-    db = SessionLocal()
-    try:
-        seed_services(db)
-    finally:
-        db.close()
+    import time
+    # Retry DB connection up to 10 times (Railway DB may not be ready immediately)
+    for attempt in range(10):
+        try:
+            Base.metadata.create_all(bind=engine)
+            db = SessionLocal()
+            try:
+                seed_services(db)
+            finally:
+                db.close()
+            break
+        except Exception as e:
+            if attempt < 9:
+                print(f"DB not ready (attempt {attempt + 1}/10): {e}. Retrying in 3s...")
+                time.sleep(3)
+            else:
+                print(f"Could not connect to DB after 10 attempts: {e}")
+                raise
     yield
 
 
